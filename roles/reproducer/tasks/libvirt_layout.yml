@@ -102,7 +102,8 @@
   when:
     - >-
       (compute.key in (groups['computes'] | default([]))) or
-      (compute.key in (groups['cephs'] | default([])))
+      (compute.key in (groups['cephs'] | default([]))) or
+      (compute.key in (groups['networkers'] | default([])))
   vars:
     _host: "{{ compute.key }}"
     _dns4: "{{ cifmw_networking_env_definition.networks.ctlplane.dns_v4[0] }}"

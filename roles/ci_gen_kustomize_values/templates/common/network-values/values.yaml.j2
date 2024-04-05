@@ -78,8 +78,14 @@ data:
       {
         "cniVersion": "0.3.1",
         "name": "{{ network.network_name }}",
+{%  if network.network_name == "octavia" %}
+        "type": "bridge",
+{%  else %}
         "type": "macvlan",
-{%  if network.vlan_id is defined%}
+{%  endif %}
+{%  if network.network_name == "octavia" %}
+        "bridge": "octbr",
+{%  elif network.vlan_id is defined %}
         "master": "{{ network.network_name }}",
 {%  elif network.network_name == "ctlplane" %}
         "master": "ospbr",
