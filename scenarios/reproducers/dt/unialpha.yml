@@ -1,0 +1,348 @@
+---
+cifmw_networking_definition:
+  networks:
+    ctlplane:
+      network: "192.168.122.0/24"
+      gateway: "192.168.122.1"
+      dns:
+        - "192.168.122.1"
+      mtu: 1500
+      tools:
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+        netconfig:
+          ranges:
+            - start: 100
+              end: 120
+            - start: 150
+              end: 200
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+    internalapi:
+      network: "172.17.0.0/24"
+      vlan: 20
+      mtu: 1496
+      tools:
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+    storage:
+      network: "172.18.0.0/24"
+      vlan: 21
+      mtu: 1496
+      tools:
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+    tenant:
+      network: "172.19.0.0/24"
+      tools:
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+      vlan: 22
+      mtu: 1496
+
+    octavia:
+      network: "172.20.0.0/24"
+      tools:
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+      vlan: 23
+      mtu: 1496
+
+    external:
+      network: "192.168.32.0/20"
+      tools:
+        netconfig:
+          ranges:
+            - start: 130
+              end: 250
+      vlan: 22
+      mtu: 1500
+
+  group-templates:
+    ocps:
+      network-template:
+        range:
+          start: 10
+          length: 5
+      networks:
+        ctlplane: {}
+        internalapi: {}
+        octavia: {}
+        tenant: {}
+        storage: {}
+    computes:
+      network-template:
+        range:
+          start: 100
+          length: 5
+      networks:
+        ctlplane: {}
+        internalapi: {}
+        tenant: {}
+        storage: {}
+    networkers:
+      network-template:
+        range:
+          start: 106
+          length: 5
+      networks:
+        ctlplane: {}
+        internalapi: {}
+        tenant: {}
+        external: {}
+
+  instances:
+    controller-0:
+      networks:
+        ctlplane:
+          ip: "192.168.122.9"
+
+# libvirt settings
+cifmw_use_libvirt: true
+cifmw_libvirt_manager_net_prefix_add: false
+cifmw_libvirt_manager_pub_net: ocpbm
+cifmw_libvirt_manager_fixed_networks:
+  - osp_trunk
+
+# layout
+cifmw_libvirt_manager_configuration:
+  networks:
+    osp_trunk: |
+      <network>
+        <name>osp_trunk</name>
+        <forward mode='nat'/>
+        <bridge name='osp_trunk' stp='on' delay='0'/>
+        <ip family='ipv4'
+        address='{{ cifmw_networking_definition.networks.ctlplane.network |
+                    ansible.utils.nthhost(1) }}'
+        prefix='{{ cifmw_networking_definition.networks.ctlplane.network |
+                   ansible.utils.ipaddr('prefix') }}'>
+        </ip>
+      </network>
+  vms:
+    ocp:
+      amount: 3
+      admin_user: core
+      image_local_dir: "/home/dev-scripts/pool"
+      disk_file_name: "ocp_master"
+      disksize: "100"
+      xml_paths:
+        - /home/dev-scripts/ocp_master_0.xml
+        - /home/dev-scripts/ocp_master_1.xml
+        - /home/dev-scripts/ocp_master_2.xml
+      nets:
+        - osp_trunk
+    compute:
+      root_part_id: 4
+      amount: 3
+      image_url: "{{ cifmw_discovered_image_url }}"
+      sha256_image_name: "{{ cifmw_discovered_hash }}"
+      image_local_dir: "{{ cifmw_basedir }}/images/"
+      disk_file_name: "compute-base.qcow2"
+      disksize: 50
+      memory: 16
+      cpus: 8
+      nets:
+        - ocpbm
+        - osp_trunk
+    networker:
+      root_part_id: 4
+      amount: 3
+      image_url: "{{ cifmw_discovered_image_url }}"
+      sha256_image_name: "{{ cifmw_discovered_hash }}"
+      image_local_dir: "{{ cifmw_basedir }}/images/"
+      disk_file_name: "networker-base.qcow2"
+      disksize: 50
+      memory: 16
+      cpus: 8
+      nets:
+        - ocpbm
+        - osp_trunk
+    controller:
+      root_part_id: 4
+      image_url: "{{ cifmw_discovered_image_url }}"
+      sha256_image_name: "{{ cifmw_discovered_hash }}"
+      image_local_dir: "{{ cifmw_basedir }}/images/"
+      disk_file_name: "controller-os.qcow2"
+      disksize: 50
+      memory: 8
+      cpus: 4
+      nets:
+        - ocpbm
+        - osp_trunk
+
+# Local DNS configuration
+cifmw_network_local_dns:
+  forwarders:
+    - 10.10.160.2
+    - 10.11.5.160
+    - 10.2.70.215
+  domains:
+    - "openstack.lab"
+
+# OpenShift cluster customization
+cifmw_use_devscripts: true
+cifmw_devscripts_remove_libvirt_net_default: true
+cifmw_devscripts_enable_ocp_nodes_host_routing: true
+cifmw_devscripts_enable_iscsi_on_ocp_nodes: true
+cifmw_devscripts_enable_multipath_on_ocp_nodes: true
+cifmw_devscripts_create_logical_volume: true
+
+# devscripts override
+cifmw_devscripts_config_overrides:
+  openshift_version: "4.15.8"
+  external_subnet_v4: "192.168.32.0/20"
+  vm_extradisks: "true"
+  vm_extradisks_list: "vda"
+  vm_extradisks_size: "20G"
+  num_extra_workers: 2
+  extra_wroker_memory: 8192
+  extra_worker_disks: 30
+  extra_worker_vcpu: 4
+  extra_workers_online_status: "false"
+  apply_extra_workers: "false"
+  master_disk: 150
+
+_arch_repo: "/home/zuul/src/github.com/openstack-k8s-operators/architecture"
+cifmw_architecture_scenario: uni01alpha
+cifmw_arch_automation_file: uni01alpha.yaml
+cifmw_deploy_architecture: true
+
+# Tempest tests
+cifmw_run_tests: true
+cifmw_run_tempest: true
+#### SWITCHED
+cifmw_run_test_role: test_operator
+cifmw_test_operator_timeout: 7200
+cifmw_test_operator_tempest_include_list: |
+  ^tempest.api.network.*
+  ^tempest.scenario.test_network_advanced_server_ops
+  ^tempest.scenario.test_network_basic_ops
+  ^tempest.scenario.test_network_v6
+  ^tempest.scenario.test_security_groups_basic_ops
+  tempest.scenario.test_server_basic_ops.TestServerBasicOps.test_server_basic_ops
+
+  #  neutron_tempest_plugin.*
+  #whitebox_neutron_tempest_plugin.*
+
+cifmw_test_operator_tempest_exclude_list: |
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_metadata_rate_limiting
+  ^neutron_.*plugin..*scenario.test_.*macvtap
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_security_group_logging
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_l3ha_ovn.*
+  ^whitebox_neutron_tempest_plugin.*test_qos_user_policies
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_qos.QosTestExternalNetwork.*
+  ^whitebox_neutron_tempest_plugin.*many_vms
+  ^whitebox_neutron_tempest_plugin.*test_previously_used_ip
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_ovn_dbs.OvnDbsMonitoringTest.*
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_internal_dns.InternalDNSInterruptions.*
+  ^whitebox_neutron_tempest_plugin.*reboot_node
+  ^whitebox_neutron_tempest_plugin.*networker_reboot
+  ^whitebox_neutron_tempest_plugin.*ovn_controller_restart
+  test_port_security_macspoofing_port
+  DHCPAgentSchedulers
+  test_agent_management.AgentManagementTestJSON
+  test_router_interface_status
+  test_connectivity_min_max_mtu
+  mtu_sized
+
+cifmw_tempest_tempestconf_config:
+  flavorMinDisk: 1
+  flavorMinMem: 256
+  overrides: |
+    neutron_plugin_options.available_type_drivers: 'geneve'
+    neutron_plugin_options.is_igmp_snooping_enabled true
+    neutron_plugin_options.create_shared_resources true
+    compute-feature-enabled.cold_migration true
+    compute-feature-enabled.live_migration true
+    compute-feature-enabled.block_migration_for_live_migration true
+    neutron_plugin_options.ipv6_metadata false
+    network-feature-enabled.port_security true
+    compute-feature-enabled.vnc_console true
+    validation.run_validation true
+    identity.v3_endpoint_type public
+    identity.v2_admin_endpoint_type public
+
+cifmw_kustomize_deploy_architecture_repo_url: "https://github.com/karelyatin/architecture"
+cifmw_kustomize_deploy_architecture_repo_version: "uniAlpha"
+
+#no option to specify branch
+cifmw_reproducer_default_repositories:
+  - src: "https://github.com/openstack-k8s-operators/ci-framework"
+    dest: "/home/zuul/src/github.com/openstack-k8s-operators/ci-framework"
+  - src: "https://github.com/openstack-k8s-operators/install_yamls"
+    dest: "/home/zuul/src/github.com/openstack-k8s-operators/install_yamls"
+  - src: "https://github.com/openstack-k8s-operators/architecture"
+    dest: "/home/zuul/src/github.com/openstack-k8s-operators/architecture"
+
+local_home_dir: "{{ lookup('env', 'HOME') }}"
+remote_base_dir: "/home/zuul/src/github.com/openstack-k8s-operators"
+cifmw_reproducer_repositories:
+  - src: "{{ local_home_dir }}/ci-framework"
+    dest: "{{ remote_base_dir }}"
+  - src: "{{ local_home_dir }}/architecture"
+    dest: "{{ remote_base_dir }}"
+
+cifmw_os_net_setup_config:
+  - name: public
+    external: true
+    provider_network_type: flat
+    provider_physical_network: datacentre
+    subnets:
+      - name: public_subnet
+        cidr: 192.168.122.0/24
+        allocation_pool_start: 192.168.122.160
+        allocation_pool_end: 192.168.122.250
+        gateway_ip: 192.168.122.1
+        enable_dhcp: false
+
+cifmw_reproducer_supported_hypervisor_os:
+  CentOS:
+    minimum_version: 9
+  RedHat:
+    minimum_version: 9.3
+
+cifmw_ci_gen_kustomize_values_architecture_examples_path: "examples/dt"
+cifmw_kustomize_deploy_architecture_examples_path: "examples/dt"
+cifmw_virtualbmc_daemon_port: 50881
+cifmw_deploy_obs: true
