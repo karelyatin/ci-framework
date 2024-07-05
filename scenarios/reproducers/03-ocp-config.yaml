@@ -1,0 +1,28 @@
+---
+# OpenShift cluster customization
+cifmw_use_devscripts: true
+cifmw_devscripts_remove_libvirt_net_default: true
+cifmw_devscripts_enable_ocp_nodes_host_routing: true
+
+# devscripts override
+cifmw_devscripts_config_overrides:
+  openshift_version: "4.15.8"
+  external_subnet_v4: "192.168.111.0/24"
+  num_extra_workers: 0
+  manage_br_bridge: 'n'
+  manage_int_bridge: 'n'
+  manage_pro_bridge: 'n'
+  provisioning_host_external_ip: "192.168.111.1"
+  provisioning_url_host: "192.168.111.1"
+  provisioning_network: "192.168.122.0/24"
+  provisioning_network_name: ocppr
+  baremetal_network_name: ocpbm
+  enable_bootstrap_static_ip: ""
+
+
+
+
+    #bootstrap_provisioning_ip: "10.9.76.100"
+    #cluster_provisioning_ip: "10.9.76.101"
+    #provisioning_network_profile: "Disabled"
+    # Non empty string result in true whether value is true or false

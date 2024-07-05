@@ -1,0 +1,41 @@
+---
+cifmw_manage_secrets_reproducer_secrets:
+  - src: "/home/ocp_dev/idrac_access.yaml"
+    dest: "/home/zuul/idrac_access.yaml"
+cifmw_config_bmh: true
+cifmw_baremetal_hosts:
+  compute-0:
+    connection: ipmi://ospperf5-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
+    #connection: idrac-virtualmedia://ospperf5-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
+    #boot_mode: UEFI
+    boot_mode: legacy
+    nics:
+      - mac: "24:6E:96:D4:EF:18"
+        network: provision
+    credentials_file: "/home/zuul/idrac_access.yaml"
+  compute-1:
+    connection: ipmi://ospperf6-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
+    #connection: idrac-virtualmedia://ospperf6-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
+    #boot_mode: UEFI
+    boot_mode: legacy
+    nics:
+      - mac: "24:6E:96:D4:EE:58"
+        network: provision
+    credentials_file: "/home/zuul/idrac_access.yaml"
+  compute-2:
+    connection: ipmi://ospperf7-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
+    #connection: idrac-virtualmedia://ospperf7-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
+    #boot_mode: UEFI
+    boot_mode: legacy
+    nics:
+      - mac: "24:6E:96:D5:03:38"
+        network: provision
+    credentials_file: "/home/zuul/idrac_access.yaml"
+
+local_home_dir: "{{ lookup('env', 'HOME') }}"
+remote_base_dir: "/home/zuul/src/github.com/openstack-k8s-operators"
+cifmw_reproducer_repositories:
+  - src: "{{ local_home_dir }}/ci-framework"
+    dest: "{{ remote_base_dir }}"
+  - src: "{{ local_home_dir }}/architecture"
+    dest: "{{ remote_base_dir }}"

@@ -45,22 +45,22 @@
       {% set out = [] -%}
       {% if _pub_net_data.network_v4 is defined -%}
       {% set _ = out.append(_pub_net_data.network_v4 |
-                            ansible.utils.nthhost(2)) -%}
+                            ansible.utils.nthhost(32)) -%}
       {% endif -%}
       {% if _pub_net_data.network_v6 is defined -%}
       {% set _ = out.append(_pub_net_data.network_v6 |
-                            ansible.utils.nthhost(2)) -%}
+                            ansible.utils.nthhost(32)) -%}
       {% endif -%}
       {{ out }}
     _apps_addr: >-
       {% set out = [] -%}
       {% if _pub_net_data.network_v4 is defined -%}
       {% set _ = out.append(_pub_net_data.network_v4 |
-                            ansible.utils.nthhost(3)) -%}
+                            ansible.utils.nthhost(33)) -%}
       {% endif -%}
       {% if _pub_net_data.network_v6 is defined -%}
       {% set _ = out.append(_pub_net_data.network_v6 |
-                            ansible.utils.nthhost(3)) -%}
+                            ansible.utils.nthhost(33)) -%}
       {% endif -%}
       {{ out }}
     _ocppr_net_v4: >-
@@ -296,10 +296,10 @@
             cifmw_dnsmasq_host_ips: >-
               {%- set data = [] -%}
               {%- if _pub_net_data.network_v4 is defined and _pub_net_data.network_v4 | length > 0 -%}
-              {%- set _ = data.append(_pub_net_data.network_v4 | ansible.utils.nthhost(4)) -%}
+              {%- set _ = data.append(_pub_net_data.network_v4 | ansible.utils.nthhost(34)) -%}
               {%- endif -%}
               {%- if _pub_net_data.network_v6 is defined and _pub_net_data.network_v6 | length > 0 -%}
-              {%- set _ = data.append(_pub_net_data.network_v6 | ansible.utils.nthhost(4)) -%}
+              {%- set _ = data.append(_pub_net_data.network_v6 | ansible.utils.nthhost(34)) -%}
               {%- endif -%}
               {{ data }}
           ansible.builtin.include_role:

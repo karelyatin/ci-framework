@@ -201,10 +201,10 @@
           networks:
             {{ _lnet_data.name | replace('cifmw_', '') }}:
       {%   if net_4 is defined %}
-              ip-v4: "{{ net_4 | ansible.utils.nthhost(9) }}"
+              ip-v4: "{{ net_4 | ansible.utils.nthhost(39) }}"
       {%   endif %}
       {%   if net_6 is defined %}
-              ip-v6: "{{ net_6 | ansible.utils.nthhost(9) }}"
+              ip-v6: "{{ net_6 | ansible.utils.nthhost(39) }}"
       {%   endif %}
       {% endif %}
   block:

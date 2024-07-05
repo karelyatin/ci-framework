@@ -105,7 +105,7 @@ data:
     options:
       - key: server
         values:
-          - {{ cifmw_networking_env_definition.networks.ctlplane.gw_v4 }}
+          - "192.168.111.1"
 {% for nameserver in cifmw_ci_gen_kustomize_values_nameservers %}
       - key: server
         values:

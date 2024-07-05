@@ -1,0 +1,6 @@
+---
+cifmw_deploy_architecture: true
+cifmw_architecture_scenario: ovs-dpdk
+
+_arch_repo: "{{ cifmw_architecture_repo | default('/home/zuul/src/github.com/openstack-k8s-operators/architecture') }}"
+cifmw_block_device_size: 60G

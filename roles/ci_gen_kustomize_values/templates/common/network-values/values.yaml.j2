@@ -9,7 +9,7 @@ data:
 {%   for network in cifmw_networking_env_definition.instances[host]['networks'].values() -%}
 {%     set ns.interfaces = ns.interfaces |
                            combine({network.network_name: (network.parent_interface |
-                                                           default(network.interface_name)
+                                                           default(network.interface_name)|default('enp5s0')
                                                           )
                                    },
                                    recursive=true) -%}

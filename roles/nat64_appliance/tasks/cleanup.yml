@@ -20,12 +20,14 @@
     path: "{{ cifmw_nat64_appliance_workdir }}/nat64-appliance.qcow2"
 
 - name: List VMs
+  become: true
   register: _list_vms
   community.libvirt.virt:
     command: list_vms
 
 - name: Stop the nat64_appliance VM
   when: cifmw_nat64_appliance_name in _list_vms.list_vms
+  become: true
   community.libvirt.virt:
     command: destroy
     name: "{{ cifmw_nat64_appliance_name }}"
@@ -33,6 +35,7 @@
 
 - name: Undefine the nat64_appliance VM
   when: cifmw_nat64_appliance_name in _list_vms.list_vms
+  become: true
   community.libvirt.virt:
     command: undefine
     name: "{{ cifmw_nat64_appliance_name }}"
@@ -40,6 +43,7 @@
     uri: "{{ cifmw_nat64_libvirt_uri }}"
 
 - name: Destroy the nat64 networks
+  become: true
   register: net_destroy
   community.libvirt.virt_net:
     command: destroy
@@ -53,6 +57,7 @@
     - net_destroy.rc > 1
 
 - name: Undefine the nat64 networks
+  become: true
   community.libvirt.virt_net:
     command: undefine
     name: "{{ item }}"
