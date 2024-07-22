@@ -28,7 +28,7 @@
         _ctlplane_net: >-
           {{
             vm.value.networks | dict2items |
-            selectattr('key', 'match', '^ctlplane')
+            selectattr('key', 'match', '^ocp_ext')
           }}
         _pub_net_data: >-
           {{

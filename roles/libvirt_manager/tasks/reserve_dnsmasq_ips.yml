@@ -8,8 +8,10 @@
   when:
     - host_data.value.networks[_cleaned_netname] is defined
   vars:
+    _ctl_net_name: >-
+      {{ (net.name is match '.*ocppr$') | ternary('ctlplane', net.name) }}
     _net_name: >-
-      {{ (net.name is match '.*osp_trunk$') | ternary('ctlplane', net.name) }}
+      {{ (net.name is match '.*osp_trunk$') | ternary('ocp_ext', _ctl_net_name) }}
     _cleaned_netname: "{{ _net_name | regex_replace('^cifmw[_-]', '') }}"
     _net_data: "{{ host_data.value.networks[_cleaned_netname] }}"
     _ocp_name: >-

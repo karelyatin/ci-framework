@@ -9,13 +9,16 @@ cifmw_libvirt_manager_configuration_patch_01:
         address: "10.9.76.39/24"
         gw: "10.9.76.254"
         dns: "{{ cifmw_devscripts_host_bm_net_ip_addr }}"
+cifmw_ci_gen_kustomize_values_nameservers:
+  - "{{ cifmw_devscripts_host_bm_net_ip_addr }}"
 cifmw_networking_mapper_interfaces_info_translations:
+  osp_trunk:
+    - ocp_ext
   ocppr:
-    - controlplane
     - ctlplane
 cifmw_networking_definition:
   networks:
-    ctlplane:
+    ocp_ext:
       network: "10.9.76.0/24"
       gateway: "10.9.76.254"
       dns:
@@ -34,6 +37,26 @@ cifmw_networking_definition:
           ranges:
             - start: 71
               end: 73
+
+    ctlplane:
+      network: "192.168.122.0/24"
+      gateway: "192.168.122.1"
+      dns:
+        - "192.168.122.69"
+      mtu: 1500
+      tools:
+        multus:
+          ranges:
+            - start: 35
+              end: 38
+        metallb:
+          ranges:
+            - start: 69
+              end: 69
+        netconfig:
+          ranges:
+            - start: 71
+              end: 75
 
     internalapi:
       network: "172.17.0.0/24"
@@ -116,6 +139,7 @@ cifmw_networking_definition:
           start: 65
           length: 3
       networks: &commonNets
+        ocp_ext: {}
         ctlplane: {}
         internalapi:
           trunk-parent: ctlplane
@@ -133,7 +157,7 @@ cifmw_networking_definition:
   instances:
     controller-0:
       networks:
-        ctlplane:
+        ocp_ext:
           ip: "{{ _bm_network | ansible.utils.nthhost(39) }}"
 
 cifmw_ci_nmstate_instance_config:
