@@ -1,0 +1,209 @@
+---
+_bm_network: "10.9.76.0/24"
+cifmw_reproducer_provision_net: ocppr
+cifmw_devscripts_host_bm_net_ip_addr: "{{ _bm_network | ansible.utils.nthhost(193) }}"
+cifmw_libvirt_manager_configuration_patch_01:
+  vms:
+    controller:
+      ip_address:
+        address: "192.168.111.39/24"
+        gw: "192.168.111.1"
+        dns: "192.168.111.1"
+cifmw_networking_definition:
+  networks:
+    ctlplane:
+      network: "192.168.125.0/24"
+      gateway: "192.168.125.1"
+      dns:
+        - "192.168.125.80"
+      mtu: 1500
+      tools:
+        multus:
+          ranges:
+            - start: 31
+              end: 38
+        metallb:
+          ranges:
+            - start: 71
+              end: 80
+        netconfig:
+          ranges:
+            - start: 51
+              end: 60
+
+    internalapi:
+      network: "172.17.0.0/24"
+      vlan: 301
+      mtu: 1500
+      tools:
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+
+    storage:
+      network: "172.18.0.0/24"
+      vlan: 302
+      mtu: 1500
+      tools:
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+
+    tenant:
+      network: "172.20.0.0/24"
+      vlan: 303
+      mtu: 1500
+      tools:
+        multus:
+          ranges:
+            - start: 30
+              end: 70
+        metallb:
+          ranges:
+            - start: 80
+              end: 90
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+
+    storagemgmt:
+      network: "172.19.0.0/24"
+      vlan: 303
+      mtu: 1500
+      tools:
+        netconfig:
+          ranges:
+            - start: 100
+              end: 250
+
+    external:
+      network: "192.168.32.0/20"
+      vlan: 10
+      mtu: 1500
+      tools:
+        netconfig:
+          ranges:
+            - start: 130
+              end: 250
+
+  group-templates:
+    ocps:
+      network-template:
+        range:
+          start: 65
+          length: 3
+      networks: &commonNets
+        ctlplane: {}
+        internalapi:
+          trunk-parent: ctlplane
+        tenant:
+          trunk-parent: ctlplane
+        storage:
+          trunk-parent: ctlplane
+    computes:
+      network-template:
+        range:
+          start: 68
+          length: 3
+      networks: *commonNets
+
+  instances:
+    controller-0:
+      networks:
+        ctlplane:
+          ip: "192.168.125.39"
+
+cifmw_ci_nmstate_instance_config:
+  localhost:
+    dns-resolver:
+      config:
+        server:
+          - 10.11.5.160
+          - 10.2.70.215
+        search:
+          - tripleo.lab.eng.rdu2.redhat.com
+    routes:
+      config:
+        - destination: 0.0.0.0/0
+          next-hop-interface: osp_trunk
+          next-hop-address: 10.9.76.254
+    interfaces:
+      - name: eno2
+        type: ethernet
+        state: up
+
+      - name: eno2.10
+        type: vlan
+        state: up
+        vlan:
+          id: 10
+          base-iface: eno2
+
+      - name: osp_trunk
+        type: linux-bridge
+        state: up
+        ipv4:
+          address:
+            - ip: "192.168.125.1"
+              prefix-length: 24
+            - ip: "{{ cifmw_devscripts_host_bm_net_ip_addr }}"
+              prefix-length: 24
+          enabled: true
+        ipv6:
+          enabled: false
+        bridge:
+          options:
+            stp:
+              enabled: false
+            vlan-protocol: 802.1q
+          port:
+            - name: eno2
+              stp-hairpin-mode: false
+              stp-path-cost: 100
+              stp-priority: 32
+
+      - name: ocppr
+        type: linux-bridge
+        state: up
+        ipv4:
+          address:
+            - ip: "192.168.123.1"
+              prefix-length: 24
+          enabled: true
+        ipv6:
+          enabled: false
+        bridge:
+          options:
+            stp:
+              enabled: false
+            vlan-protocol: 802.1q
+          port:
+            - name: eno1
+              stp-hairpin-mode: false
+              stp-path-cost: 100
+              stp-priority: 32
+              vlan:
+                mode: trunk
+                trunk-tags:
+                  - id-range:
+                      min: 300
+                      max: 310

@@ -10,10 +10,10 @@ cifmw_os_net_setup_config:
     provider_physical_network: datacentre
     subnets:
       - name: public_subnet
-        cidr: 192.168.122.0/24
-        allocation_pool_start: 192.168.122.171
-        allocation_pool_end: 192.168.122.250
-        gateway_ip: 192.168.122.1
+        cidr: 192.168.125.0/24
+        allocation_pool_start: 192.168.125.171
+        allocation_pool_end: 192.168.125.250
+        gateway_ip: 192.168.125.1
         enable_dhcp: true
 
 cifmw_os_net_subnetpool_config:

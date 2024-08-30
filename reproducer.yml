@@ -77,6 +77,13 @@
       ansible.builtin.command: # noqa: command-instead-of-module
         cmd: iptables -I LIBVIRT_FWI 1 -o ocpbm -j ACCEPT
 
+    - name: Masquerade osp trunk network
+      become: true
+      vars:
+        masq_net: "192.168.125.0/24"
+      ansible.builtin.command: # noqa: command-instead-of-module
+        cmd: iptables -t nat -A POSTROUTING -s {{ masq_net }} ! -d {{ masq_net }} -j MASQUERADE
+
     - name: Run deployment if instructed to
       when:
         - cifmw_deploy_architecture | default(false) | bool

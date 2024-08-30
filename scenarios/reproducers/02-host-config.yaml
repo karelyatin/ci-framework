@@ -1,0 +1,72 @@
+---
+# libvirt settings
+cifmw_use_libvirt: true
+cifmw_libvirt_manager_pub_net: ocpbm
+
+cifmw_use_uefi: >-
+  {{ (cifmw_repo_setup_os_release is defined
+      and cifmw_repo_setup_os_release == 'rhel') | bool }}
+cifmw_root_partition_id: >-
+  {{
+    (cifmw_repo_setup_os_release is defined and cifmw_repo_setup_os_release == 'rhel') |
+    ternary(4, 1)
+  }}
+
+cifmw_libvirt_manager_net_prefix_add: false
+cifmw_libvirt_manager_fixed_networks:
+  - ocppr
+  - ocpbm
+  - osp_trunk
+
+cifmw_libvirt_manager_configuration:
+  networks:
+    ocpbm: |
+      <network>
+        <name>ocpbm</name>
+        <forward mode='nat'/>
+        <bridge name='ocpbm' stp='on' delay='0'/>
+        <dns enable="no"/>
+        <ip family='ipv4' address='192.168.111.1' prefix='24'>
+        </ip>
+      </network>
+    osp_trunk: |
+      <network>
+        <name>osp_trunk</name>
+        <forward mode='bridge' />
+        <dns enable="no"/>
+        <bridge name='osp_trunk' />
+      </network>
+    ocppr: |
+      <network>
+        <name>ocppr</name>
+        <forward mode='bridge'/>
+        <bridge name='ocppr'/>
+      </network>
+  vms:
+    controller:
+      uefi: "{{ cifmw_use_uefi }}"
+      root_part_id: "{{ cifmw_root_partition_id }}"
+      image_url: "{{ cifmw_discovered_image_url }}"
+      sha256_image_name: "{{ cifmw_discovered_hash }}"
+      image_local_dir: "{{ cifmw_basedir }}/images/"
+      disk_file_name: "base-os.qcow2"
+      disksize: 50
+      memory: 8
+      cpus: 4
+      nets:
+        - ocpbm
+        - osp_trunk
+    ocp:
+      uefi: true
+      root_part_id: 4
+      image_local_dir: "{{ cifmw_basedir }}/images/"
+      amount: 3
+      admin_user: core
+      disk_file_name: "ocp_master"
+      disksize: "105"
+      memory: 32
+      cpus: 10
+      nets:
+        - ocppr
+        - ocpbm
+        - osp_trunk
