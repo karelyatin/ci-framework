@@ -60,7 +60,7 @@ cifmw_libvirt_manager_configuration:
       uefi: true
       root_part_id: 4
       image_local_dir: "{{ cifmw_basedir }}/images/"
-      amount: 3
+      amount: 0
       admin_user: core
       disk_file_name: "ocp_master"
       disksize: "105"

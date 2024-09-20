@@ -1,9 +1,36 @@
 ---
 cifmw_manage_secrets_reproducer_secrets:
-  - src: "/home/ocp_dev/idrac_access.yaml"
+  - src: "/home/zuul/idrac_access.yaml"
     dest: "/home/zuul/idrac_access.yaml"
 cifmw_config_bmh: true
 cifmw_baremetal_hosts:
+  ocp-master-0:
+    connection: ipmi://ospperf3-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
+    #connection: idrac-virtualmedia://ospperf5-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
+    #boot_mode: UEFI
+    boot_mode: legacy
+    nics:
+      - mac: "24:6E:96:D5:07:F8"
+        network: provision
+    credentials_file: "/home/zuul/idrac_access.yaml"
+  ocp-master-1:
+    connection: ipmi://ospperf4-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
+    #connection: idrac-virtualmedia://ospperf6-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
+    #boot_mode: UEFI
+    boot_mode: legacy
+    nics:
+      - mac: "24:6E:96:D5:15:18"
+        network: provision
+    credentials_file: "/home/zuul/idrac_access.yaml"
+  ocp-master-2:
+    connection: ipmi://ospperf7-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
+    #connection: idrac-virtualmedia://ospperf7-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
+    #boot_mode: UEFI
+    boot_mode: legacy
+    nics:
+      - mac: "24:6E:96:D5:03:38"
+        network: provision
+    credentials_file: "/home/zuul/idrac_access.yaml"
   compute-0:
     connection: ipmi://ospperf5-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
     #connection: idrac-virtualmedia://ospperf5-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
@@ -20,15 +47,6 @@ cifmw_baremetal_hosts:
     boot_mode: legacy
     nics:
       - mac: "24:6E:96:D4:EE:58"
-        network: provision
-    credentials_file: "/home/zuul/idrac_access.yaml"
-  compute-2:
-    connection: ipmi://ospperf7-drac.mgmt.mobius.lab.eng.rdu2.redhat.com
-    #connection: idrac-virtualmedia://ospperf7-drac.mgmt.mobius.lab.eng.rdu2.redhat.com/redfish/v1/Systems/System.Embedded.1
-    #boot_mode: UEFI
-    boot_mode: legacy
-    nics:
-      - mac: "24:6E:96:D5:03:38"
         network: provision
     credentials_file: "/home/zuul/idrac_access.yaml"
 

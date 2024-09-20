@@ -1,7 +1,7 @@
 ---
 _bm_network: "10.9.76.0/24"
 cifmw_reproducer_provision_net: ocppr
-cifmw_devscripts_host_bm_net_ip_addr: "{{ _bm_network | ansible.utils.nthhost(193) }}"
+cifmw_devscripts_host_bm_net_ip_addr: "{{ ansible_default_ipv4.address }}"
 cifmw_libvirt_manager_configuration_patch_01:
   vms:
     controller:
@@ -190,6 +190,7 @@ cifmw_ci_nmstate_instance_config:
               prefix-length: 24
           enabled: true
         ipv6:
+          dhcp: false
           enabled: false
         bridge:
           options:

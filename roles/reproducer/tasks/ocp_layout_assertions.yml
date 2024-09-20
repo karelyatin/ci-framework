@@ -39,7 +39,7 @@
     _memory: 16
     _cpus: 10
     _disk: 50
-    _min_ocp: 3
+    _min_ocp: 0
   ansible.builtin.assert:
     that:
       - _element.cpus is defined
