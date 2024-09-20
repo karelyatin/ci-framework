@@ -1,0 +1,90 @@
+- any_errors_fatal: true
+  gather_facts: false
+  hosts: localhost
+  become: yes
+  become_user: zuul
+  vars_files:
+    - "./files/{{ BROWBEAT_CONFIG_VARS_FILE }}"
+  tasks:
+    - name: Lookup for external network in OSP
+      vars:
+        EXT_NET_NAME: "{{ lookup('env', 'EXT_NET_NAME') or 'public' }}"
+      shell: |
+        . ~/overcloudrc
+        openstack network show --format value --column id {{ EXT_NET_NAME }}
+      register: ext_net_id
+
+    - name: Create Browbeat config
+      template:
+        src: files/browbeat-config.yaml.j2
+        dest: /home/zuul/browbeat/browbeat-config.yaml
+
+    - name: Generate Jenkins metadata file
+      template:
+        src: files/jenkins.json.j2
+        dest: /home/zuul/browbeat/metadata/jenkins.json
+
+    - name: Run tests and collect results
+      block:
+        - name: Run the Rally tests
+          shell: |
+            . .browbeat-venv/bin/activate
+            python browbeat.py -s browbeat-config.yaml rally
+          args:
+            chdir: /home/zuul/browbeat
+      always:
+        - name: Generate Rally report in Junit XML format
+          shell: |
+            . .rally-venv/bin/activate
+            rally task export \
+                --deployment overcloud \
+                --type junit-xml \
+                --to results/rally-results.xml
+          args:
+            chdir: /home/zuul/browbeat
+
+        - name: Get the list of all results files
+          shell: |
+            cd /home/zuul/browbeat/results/
+            find . -type f
+          register: files_to_copy
+
+        - name: Collect all Browbeat results
+          vars:
+            PWD: "{{ lookup('env', 'PWD') or '.' }}"
+          fetch:
+            src: "/home/zuul/browbeat/results/{{ item }}"
+            dest: "{{ PWD }}/browbeat-results/{{ item }}"
+            flat: yes
+          with_items: "{{ files_to_copy.stdout_lines }}"
+
+        - name: Prepare the Rally report
+          shell: |
+            find /home/zuul/browbeat/results/ -type f \
+                -name 'all-rally-run-0.html' -printf '%T@ %p\n' \
+                | sort -n | tail -n 1 | cut -d ' ' -f 2- \
+                | xargs -I {} cp {} rally-results.html
+
+        - name: Improve the Rally report
+          vars:
+            BUILD_URL: "{{ lookup('env', 'BUILD_URL') }}"
+            BUILD_TAG: "{{ lookup('env', 'BUILD_TAG') }}"
+          lineinfile:
+            path: rally-results.html
+            regexp: '^(.*)<a href="https://github.com/openstack/rally">Rally</a>(.*)$'
+            line: '\1<a href="{{ BUILD_URL }}">{{ BUILD_TAG }}</a>\2'
+            backrefs: yes
+          when:
+            - BUILD_URL | length > 0
+            - BUILD_TAG | length > 0
+
+        - name: Collect the Rally HTML report
+          fetch:
+            src: rally-results.html
+            dest: "{{ ansible_user_dir }}/ci-framework-data/tests/rally-results.html"
+            flat: yes
+
+        - name: Collect the Rally XML report
+          fetch:
+            src: browbeat/results/rally-results.xml
+            dest: "{{ ansible_user_dir }}/ci-framework-data/tests/rally-results.xml"

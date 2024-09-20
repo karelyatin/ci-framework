@@ -64,6 +64,14 @@
   tags:
     - run-tests
 
+- name: Import browbeat playbook
+  ansible.builtin.import_playbook: playbooks/09-run-browbeat.yml
+  vars:
+    pre_tests: "{{ (lookup('vars', 'pre_tempest', default=[])) }}"
+    post_tests: "{{ (lookup('vars', 'post_tempest', default=[])) }}"
+  tags:
+    - run-tests
+
 - name: Run compliance tests
   ansible.builtin.import_playbook: playbooks/09-compliance.yml
   tags:

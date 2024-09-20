@@ -16,6 +16,7 @@
       }}
 
 - name: Perform the libvirt cleanup
+  become: true
   when:
     - ansible_facts.packages is defined
     - >-

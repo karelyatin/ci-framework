@@ -1,0 +1,40 @@
+- name: "Test playbook"
+  hosts: "{{ cifmw_target_host | default('localhost') }}"
+  gather_facts: true
+  tasks:
+    # end_play will end only current play, not the main edpm-deploy.yml
+    - name: Early exit if no tests
+      when:
+        - not cifmw_run_tests | default('false') | bool
+        - not cifmw_run_browbeat | default('true') | bool
+      ansible.builtin.meta: end_play
+
+    - name: Copy browbeat scripts
+      ansible.builtin.copy:
+        dest: "{{ ansible_user_dir }}"
+        src: "../{{ item }}"
+      with_items:
+        - browbeat_install.sh
+        - browbeat_run.sh
+        - browbeat_tasks.yml
+        - files
+
+    - name: Run browbeat install
+      when:
+        - cifmw_deploy_architecture | default(false) | bool
+        - not cifmw_run_browbeat | default('false') | bool
+      #no_log: "{{ cifmw_nolog | default(true) | bool }}"
+      async: "600"
+      poll: 20
+      ansible.builtin.command:
+        cmd: "{{ ansible_user_dir }}/browbeat_install.sh"
+
+    - name: Run browbeat
+      when:
+        - cifmw_deploy_architecture | default(false) | bool
+        - not cifmw_run_browbeat | default('false') | bool
+      #no_log: "{{ cifmw_nolog | default(true) | bool }}"
+      async: "8200"
+      poll: 40
+      ansible.builtin.command:
+        cmd: "{{ ansible_user_dir }}/browbeat_run.sh"

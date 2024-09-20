@@ -1,0 +1,98 @@
+---
+# Tests to be executed
+cifmw_run_tests: true
+cifmw_run_tempest: true
+
+# Test operator
+cifmw_run_test_role: test_operator
+
+# Includes mtu_frame_size tests. Without the below setting, they would be
+# skipped due to OVNKubernetes setting the MTU to 100 less than default.
+cifmw_test_operator_tempest_network_attachments:
+  - ctlplane
+
+# Extra tempest image
+cifmw_test_operator_tempest_extra_images:
+  - URL: http://10.0.152.55/dfg-network/custom_neutron_guest_rhel_8.4.qcow2
+    name: custom_neutron_guest_rhel_8.4
+    diskFormat: qcow2
+    ID: "11111111-1111-1111-1111-111111111111"
+    flavor:
+      name: custom_neutron_guest_rhel_8.4
+      ID: "22222222-2222-2222-2222-222222222222"
+      RAM: 1024
+      disk: 10
+      vcpus: 1
+
+# Test executions
+cifmw_test_operator_tempest_include_list: |
+  ^tempest.api.network.*
+  ^tempest.scenario.test_network_advanced_server_ops
+  ^tempest.scenario.test_network_basic_ops
+  ^tempest.scenario.test_network_v6
+  ^tempest.scenario.test_security_groups_basic_ops
+  tempest.scenario.test_server_basic_ops.TestServerBasicOps.test_server_basic_ops
+
+cifmw_test_operator_tempest_exclude_list: |
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_metadata_rate_limiting
+  ^neutron_.*plugin..*scenario.test_.*macvtap
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_security_group_logging
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_l3ha_ovn.*
+  ^whitebox_neutron_tempest_plugin.*test_qos_user_policies
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_qos.QosTestExternalNetwork.*
+  ^whitebox_neutron_tempest_plugin.*many_vms
+  ^whitebox_neutron_tempest_plugin.*test_previously_used_ip
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_ovn_dbs.OvnDbsMonitoringTest.*
+  ^whitebox_neutron_tempest_plugin.tests.scenario.test_internal_dns.InternalDNSInterruptions.*
+  ^whitebox_neutron_tempest_plugin.*reboot_node
+  ^whitebox_neutron_tempest_plugin.*networker_reboot
+  ^whitebox_neutron_tempest_plugin.*ovn_controller_restart
+  test_multicast.*restart
+  test_multicast.*ext*
+  test_port_security_macspoofing_port
+  DHCPAgentSchedulers
+  test_agent_management.AgentManagementTestJSON
+  test_router_interface_status
+  test_connectivity_min_max_mtu
+  test_south_to_north_pmtud_udp_change_mtu
+  neutron_tempest_plugin.scenario.test_mtu.NetworkWritableMtuTest
+  neutron_tempest_plugin.scenario.test_port_forwardings.PortForwardingTestJSON.*
+  test_qos_dscp_create_and_update
+  tempest.api.network.admin.test_dhcp_agent_scheduler.DHCPAgentSchedulersTestJSON
+
+# Switched to rpm
+# cifmw_test_operator_tempest_external_plugin:
+#   - repository: "http://opendev.org/openstack/neutron-tempest-plugin.git"
+#   - repository: "http://opendev.org/x/whitebox-neutron-tempest-plugin"
+
+cifmw_tempest_tempestconf_config:
+  flavorMinDisk: 1
+  flavorMinMem: 256
+  overrides: |
+    neutron_plugin_options.advanced_image_ref 11111111-1111-1111-1111-111111111111
+    neutron_plugin_options.advanced_image_flavor_ref 22222222-2222-2222-2222-222222222222
+    neutron_plugin_options.advanced_image_ssh_user 'cloud-user'
+    whitebox_neutron_plugin_options.openstack_type podified
+    whitebox_neutron_plugin_options.run_traffic_flow_tests true
+    whitebox_neutron_plugin_options.kubeconfig_path /home/zuul/.crc/machines/crc/kubeconfig
+    neutron_plugin_options.available_type_drivers 'vlan'
+    neutron_plugin_options.is_igmp_snooping_enabled true
+    neutron_plugin_options.create_shared_resources true
+    compute-feature-enabled.block_migration_for_live_migration True
+    validation.run_validation true
+    validation.image_ssh_user cirros
+    validation.image_ssh_password cubswin:)
+    validation.image_alt_ssh_user cirros
+    validation.image_alt_ssh_password cubswin:)
+    enforce_scope.barbican true
+    enforce_scope.cinder true
+    enforce_scope.designate true
+    enforce_scope.glance true
+    enforce_scope.ironic true
+    enforce_scope.ironic_inspector true
+    identity-feature-enabled.enforce_scope true
+    enforce_scope.manila true
+    enforce_scope.neutron true
+    enforce_scope.nova true
+    enforce_scope.octavia true
+    enforce_scope.placement true

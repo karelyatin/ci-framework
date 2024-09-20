@@ -1,5 +1,6 @@
 ---
 - name: List VMs
+  become: true
   register: _list_vms
   community.libvirt.virt:
     command: list_vms
